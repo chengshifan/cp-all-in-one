@@ -19,12 +19,13 @@ services:
       - zookeeper
     ports:
       - "9092:9092"
+      - "9093:9093"
       - "9101:9101"
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,TEST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker:29092,PLAINTEXT_HOST://localhost:9092,TEST://172.17.0.1:9093
       KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
@@ -48,13 +49,28 @@ services:
       - broker
     ports:
       - "8081:8081"
+      - "8084:8084"
+    volumes:
+    - ./conf:/conf
+    - ./files:/files
     environment:
       SCHEMA_REGISTRY_HOST_NAME: schema-registry
       SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'broker:29092'
-      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081,https://0.0.0.0:8084
+      SCHEMA_REGISTRY_INTER_INSTANCE_PROTOCOL: https
+      SCHEMA_REGISTRY_SSL_KEYSTORE_LOCATION: /conf/tls/server.keystore.jks
+      SCHEMA_REGISTRY_SSL_KEYSTORE_PASSWORD: ${PASS:-TestTest}
+      SCHEMA_REGISTRY_SSL_KEY_PASSWORD: ${PASS:-TestTest}
+      SCHEMA_REGISTRY_SSL_TRUSTSTORE_LOCATION: /conf/tls/server.truststore.jks
+      SCHEMA_REGISTRY_SSL_TRUSTSTORE_PASSWORD: TestTest
+      SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: zookeeper:2181
+      SCHEMA_REGISTRY_AUTHENTICATION_METHOD: BASIC
+      SCHEMA_REGISTRY_AUTHENTICATION_REALM: SchemaRegistry
+      SCHEMA_REGISTRY_AUTHENTICATION_ROLES: user,developer,admin
+      SCHEMA_REGISTRY_OPTS: -Djava.security.auth.login.config=/conf/schema-registry.jaas
 
   connect:
-    image: cnfldemos/cp-server-connect-datagen:0.6.2-7.5.0
+    image: cnfldemos/cp-server-connect-datagen:0.5.3-7.1.0
     hostname: connect
     container_name: connect
     depends_on:
