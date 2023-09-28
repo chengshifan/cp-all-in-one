@@ -7,9 +7,22 @@ services:
     container_name: zookeeper
     ports:
       - "2181:2181"
+    volumes:
+    - ./conf:/conf
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
+      KAFKA_OPTS: -Djava.security.auth.login.config=/conf/zookeeper.jaas
+        -Dquorum.auth.enableSasl=true
+        -Dquorum.auth.learnerRequireSasl=true
+        -Dquorum.auth.serverRequireSasl=true
+        -Dquorum.cnxn.threads.size=20
+        -Dzookeeper.authProvider.1=org.apache.zookeeper.server.auth.SASLAuthenticationProvider
+        -Dzookeeper.authProvider.2=org.apache.zookeeper.server.auth.DigestAuthenticationProvider
+        -DjaasLoginRenew=3600000
+        -DrequireClientAuthScheme=sasl
+        -Dquorum.auth.learner.loginContext=QuorumLearner
+        -Dquorum.auth.server.loginContext=QuorumServer
 
   broker:
     image: confluentinc/cp-server:7.5.0
@@ -21,10 +34,12 @@ services:
       - "9092:9092"
       - "9093:9093"
       - "9101:9101"
+    volumes:
+    - ./conf:/conf
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,TEST:PLAINTEXT
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,TEST:SASL_PLAINTEXT
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker:29092,PLAINTEXT_HOST://localhost:9092,TEST://172.17.0.1:9093
       KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
@@ -40,6 +55,8 @@ services:
       CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 1
       CONFLUENT_METRICS_ENABLE: 'true'
       CONFLUENT_SUPPORT_CUSTOMER_ID: 'anonymous'
+      KAFKA_OPTS: -Djava.security.auth.login.config=/conf/kafka_server.jaas
+      KAFKA_LISTENER_NAME_TEST_SASL_ENABLED_MECHANISMS: PLAIN
 
   schema-registry:
     image: confluentinc/cp-schema-registry:7.5.0
@@ -70,7 +87,7 @@ services:
       SCHEMA_REGISTRY_OPTS: -Djava.security.auth.login.config=/conf/schema-registry.jaas
 
   connect:
-    image: cnfldemos/cp-server-connect-datagen:0.5.3-7.1.0
+    image: cnfldemos/cp-server-connect-datagen:0.6.2-7.5.0
     hostname: connect
     container_name: connect
     depends_on:
