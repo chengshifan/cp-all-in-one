@@ -1,4 +1,10 @@
-KafkaServer {
+test.KafkaServer {
+    org.apache.kafka.common.security.plain.PlainLoginModule required
+    username="admin"
+    password="Sapvora123@"
+    user_admin="Sapvora123@";
+};
+sslhost.KafkaServer {
     org.apache.kafka.common.security.plain.PlainLoginModule required
     username="admin"
     password="Sapvora123@"
