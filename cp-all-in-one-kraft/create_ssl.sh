@@ -1,6 +1,6 @@
 #!/bin/bash
 
-hst_dns="AZRWEU008706.azure.global.corp.sap"
+hst_dns="im-confluent-platform.datahub.sapcloud.io"
 
 set -eou pipefail \
     -o errexit
@@ -12,7 +12,7 @@ mkdir -p tmp
 echo " OK!"
 # Generate CA key
 printf "Creating CA..."
-openssl req -new -x509 -keyout tmp/datahub-ca.key -out tmp/datahub-ca.crt -days 365 -subj '/CN=AZRWEU008706.azure.global.corp.sap:9093/OU=test/O=datahub/L=paris/C=fr' -passin pass:datahub -passout pass:datahub >/dev/null 2>&1
+openssl req -new -x509 -keyout tmp/datahub-ca.key -out tmp/datahub-ca.crt -days 365 -subj '/CN=im-confluent-platform.datahub.sapcloud.io:9093/OU=test/O=datahub/L=paris/C=fr' -passin pass:datahub -passout pass:datahub >/dev/null 2>&1
 cp tmp/datahub-ca.crt secrets/datahub-ca.crt
 echo " OK!"
 

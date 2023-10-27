@@ -1,1 +1,1 @@
-subjectAltName = DNS:AZRWEU008706.azure.global.corp.sap, DNS:localhost
+subjectAltName = DNS:im-confluent-platform.datahub.sapcloud.io, DNS:localhost
